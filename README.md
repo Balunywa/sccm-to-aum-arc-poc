@@ -23,7 +23,7 @@ This POC covers:
 3. **Azure Arc onboarding** for hybrid VMs (Windows + optional Linux)
 4. **Custom script deployment** via Arc & Azure Functions
 5. **Update orchestration from AUM**, validating sync behavior
-6. **SQL patching insights** (what works today, what doesn’t)
+6. **SQL patching insights** 
 7. **POC output templates** (README, diagrams, and reusable JSON & Bash scripts)
 
 ---
