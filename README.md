@@ -11,7 +11,7 @@ This repository provides a **rapid Proof of Concept (POC)** for customers curren
 Many customers have heavily invested in SCCM over the years, often with deep customizations. Azure Update Manager offers a cloud-native alternative, but the journey from SCCM to AUM is **not a lift-and-shift**. This repo helps you explore:
 
 - AUM coexistence with SCCM in a hybrid state?
-- What are the current gaps or friction points?
+- What are friction points?
 ---
 
 ##  What's Inside
