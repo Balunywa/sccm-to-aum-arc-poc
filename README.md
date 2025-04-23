@@ -2,7 +2,7 @@
 
 This repository provides a **rapid Proof of Concept (POC)** for customers currently using **System Center Configuration Manager (SCCM)** and evaluating or transitioning to **Azure Update Manager (AUM)**, with **Azure Arc** as the management bridge.
 
-> The goal: Reproduce real-world scenarios, validate coexistence of SCCM and AUM, and highlight what's possible today vs. what's still maturing (e.g., SQL patching, AG-awareness).
+> The goal: Reproduce real-world scenarios, validate coexistence of SCCM and AUM, and highlight what value can be unlocked today
 
 ---
 
