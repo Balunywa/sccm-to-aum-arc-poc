@@ -36,8 +36,8 @@ This POC covers:
 |----------|-------------|
 | SCCM + AUM coexistence | Validate side-by-side patching logic |
 | Arc-enabled VM updates | Use Arc to deploy updates via AUM |
-| SQL AG-aware patching | Currently in preview, not GA |
-| Custom scripts via Arc | Script-based config/patch automation |
+| SQL AG-aware patching |  |
+| Custom scripts via Arc & Azure Functions | Script-based config/patch automation |
 | Private Networking | AUM traffic via Private Endpoints only |
 
 ---
