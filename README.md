@@ -78,8 +78,6 @@ This repository includes:
 
 This POC specifically aims to evaluate patching Windows servers and SQL Server instances, with the following goals:
 
-- Evaluate whether SCCM can be replaced or operate side-by-side with AUM
-- Determine how SQL patching behaves under Arc-enabled management
 - Inventory reporting of SQL Server environments
 - Assess Azure Arc's ability to integrate SQL BPA (Best Practices Analyzer) with Failover Clusters
 - Explore single-pane-of-glass management for SQL workloads
@@ -89,14 +87,6 @@ This POC specifically aims to evaluate patching Windows servers and SQL Server i
   - Patch scheduling
   - Software repository and app catalog
   - Device inventory
-
-### Key Inputs Required
-
-- Number of servers in scope
-- Versions of Windows Server and SQL Server in scope
-- Whether servers have internet access or need private-only connectivity
-- Intention to continue using internal WSUS for update source (if preferred)
-- Target to complete the POC setup by May to align with monthly patch cycle
 
 ---
 
