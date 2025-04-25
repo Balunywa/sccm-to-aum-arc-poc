@@ -120,5 +120,5 @@ msiexec /i AzureConnectedMachineAgentSetup.msi /qn ^
 - Training and operational readiness checklists
 
 **Version**: 1.0  
-**Last Updated**: Current Date
+
 
