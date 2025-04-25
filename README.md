@@ -1,4 +1,4 @@
-# SCCM to Azure Update Manager (AUM) with Azure Arc – Comprehensive POC Documentation
+SCCM to Azure Update Manager (AUM) with Azure Arc – Comprehensive POC Documentation
 
 ## Overview
 
