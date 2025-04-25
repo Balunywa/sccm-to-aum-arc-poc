@@ -1,190 +1,145 @@
-SCCM to Azure Update Manager (AUM) with Azure Arc – Comprehensive POC Documentation
+# SCCM to Azure Update Manager (AUM) with Azure Arc – Comprehensive POC Documentation
 
-Overview
+## Overview
 
-This document provides a comprehensive framework for a Proof of Concept (POC) to evaluate the replacement or side-by-side operation of System Center Configuration Manager (SCCM) with Azure Update Manager (AUM), using Azure Arc as the foundational bridge for managing hybrid Windows Server and SQL Server environments.
+This repository provides a comprehensive framework for a Proof of Concept (POC) to evaluate the replacement or side-by-side operation of **System Center Configuration Manager (SCCM)** with **Azure Update Manager (AUM)**, using **Azure Arc** to manage hybrid Windows Server and SQL Server environments.
 
-The goal of this POC is to:
+### Goal
 
-Provide a structured way to test Azure-native server management
+- Provide a structured way to test Azure-native server management
+- Identify gaps and validate feature parity with SCCM
+- Help IT teams decide when and how to transition from SCCM to AUM
 
-Identify gaps and validate feature parity with SCCM
+---
 
-Help IT teams decide when and how to transition from SCCM to AUM
+## Objectives
 
-Objectives
+- Evaluate SCCM and AUM coexistence in hybrid environments
+- Validate end-to-end patching workflows for Windows Server and SQL Server through Azure Arc
+- Identify integration and operational challenges
+- Provide hands-on guidance for testing and rollout planning
 
-Evaluate SCCM and Azure Update Manager coexistence in hybrid environments
+---
 
-Validate end-to-end patching workflows for Windows Server and SQL Server through Azure Arc
+## Strategic Considerations
 
-Identify integration challenges between SCCM and AUM
+### Lifecycle and Roadmap of SCCM
+- SCCM is **not deprecated**, **and you should continue using it if it meets your requirements**.
+- **System Center 2022 and 2025** will continue to receive support.
+- Azure-native tools (AUM, Arc, Machine Configuration) are the **recommended future path**.
 
-Provide a hands-on lab approach to feature testing and assessment
+### Transition Philosophy
+- **Do not remove SCCM immediately**.
+- Start with **side-by-side evaluation**.
+- Gradually transition to AUM for supported use cases.
 
-Strategic Considerations
+---
 
-Lifecycle and Roadmap of SCCM
+## SCCM vs Azure Management Services Capability Map
 
-SCCM is not deprecated, but it is in sustainment mode with limited future innovation.
+| SCCM Capability                       | Azure Equivalent                                |
+|--------------------------------------|-------------------------------------------------|
+| Patch Management                     | Azure Update Manager                            |
+| Compliance / Configuration Management| Azure Machine Configuration                     |
+| Asset Inventory (Software)           | Azure Change Tracking & Inventory               |
+| Asset Inventory (Hardware)           | Azure Resource Graph                            |
+| Application Deployment               | Azure VM Apps, Custom Script Extension          |
+| OS Deployment / Upgrade              | Azure Automation + Scripts                      |
+| Troubleshooting                      | Azure Automation, Run Command                   |
+| Audit and Compliance                 | Azure Change Tracking, Change Analysis          |
+| Endpoint Protection                  | Microsoft Defender for Cloud                    |
 
-System Center 2022 and 2025 will continue to support server management.
+---
 
-For forward-looking architectures, Azure Update Manager, Azure Arc, and Azure Machine Configuration are recommended.
+##  Key Feature Gaps in Azure Management (vs SCCM)
 
-Transition Philosophy
+- **Guest Application Updates** – Not currently supported in AUM (e.g., Chrome, Acrobat). Proposed: Winget or Shared Gallery.
+- **Automated In-place OS Upgrades** – Requires custom runbooks and pre-check scripts.
+- **Patch Rollback** – No native rollback. Risk management needed.
+- **Sequential Patch Rings** – Basic support; enhancements coming.
+- **Distribution Points** – No direct replacement for WSUS. Azure Guest Patching Service planned.
 
-Customers should not remove SCCM immediately.
+---
 
-Start with parallel testing and progressively transition workloads to AUM.
+##  POC Environment Setup
 
-Retain SCCM for use cases not yet supported by AUM (e.g., software metering).
+### 1. SCCM Deployment
+- Deploy SCCM using SQL Express in lab environment
+- Enable WSUS
+- Create patching collections
 
-SCCM vs Azure Management Services Capability Map
+### 2. Azure Arc Onboarding (via GPO or Script)
 
-SCCM Capability
-
-Azure Equivalent
-
-Patch Management
-
-Azure Update Manager
-
-Compliance / Configuration Management
-
-Azure Machine Configuration
-
-Asset Inventory (Software)
-
-Azure Change Tracking & Inventory
-
-Asset Inventory (Hardware)
-
-Azure Resource Graph
-
-Application Deployment
-
-Azure VM Apps, Custom Script Extension
-
-OS Deployment / Upgrade
-
-Azure Automation + Scripts
-
-Troubleshooting
-
-Azure Automation, Run Command
-
-Audit and Compliance
-
-Azure Change Tracking, Change Analysis
-
-Endpoint Protection
-
-Microsoft Defender for Cloud
-
-Key Feature Gaps in Azure Management (Compared to SCCM)
-
-Guest Application Updates: Currently unsupported in AUM. Proposal: integrate with Winget or Shared VM App Gallery.
-
-Automated In-place OS Upgrades: Requires custom scripts; no native wizard or rollback.
-
-Patch Rollback: Not natively supported; requires manual intervention.
-
-Sequential Patch Rings: Limited control for ring-based patch rollout; improvement planned.
-
-Distribution Points: No WSUS equivalent. Planned: Azure Guest Patching with local repositories.
-
-POC Environment Setup
-
-1. SCCM Deployment
-
-Deploy SCCM with SQL Express in a test lab
-
-Enable WSUS and create baseline patching collections
-
-2. Azure Arc Onboarding (via Script or GPO)
-
+```powershell
 msiexec /i AzureConnectedMachineAgentSetup.msi /qn ^
   RESOURCE_GROUP="ArcServers" ^
   LOCATION="eastus" ^
   TENANT_ID=<TenantID> ^
   SUBSCRIPTION_ID=<SubID>
 
-3. Enable Azure Update Manager
+###  Azure Update Manager Configuration
 
-Assign update schedules
+3. **Enable Azure Update Manager**
 
-Use tag-based or dynamic scoping
+- Assign update schedules via Azure Portal or automation
+- Define **patch rings** using Azure Tags or dynamic scoping
+- Enable **SQL AG-aware patching** (Preview Feature)
+- Validate server visibility and compliance configuration in **Azure Arc**
 
-Enable SQL AG-aware patching (preview)
+---
+## ✅ Validation Tests and Scenarios
 
-4. Validation Tests and Scenarios
+| Test ID | Scenario                                | Expected Result                                                                 |
+|---------|------------------------------------------|----------------------------------------------------------------------------------|
+| TC01    | Onboard VM with SQL                      | Server appears in Azure Arc with compliance and guest configuration extensions  |
+| TC02    | Patch via AUM                            | Patches apply within defined maintenance window                                 |
+| TC03    | Conflict test with SCCM                  | Conflicts identified; either dual scan error or patch rejection                 |
+| TC04    | SQL AG-aware patching                    | Patching succeeds without AlwaysOn availability group disruption                |
+| TC05    | CM Pivot vs Arc Run Command              | Comparable output returned; execution time differences documented               |
+| TC06    | Inventory comparison                     | Validate parity in OS, installed software, and patch data                       |
+| TC07    | AUM Patch Failure Scenario               | Simulate a failed patch to observe AUM error reporting and alerting behavior    |
+| TC08    | Patch Ring Behavior                      | Patches are applied progressively across tags (e.g., Dev > Staging > Prod)      |
+| TC09    | SQL Server Workload Load Test            | Confirm patch does not degrade SQL performance post-install                     |
+| TC10    | Azure Monitor Integration                | Patch events and status show up in Monitor dashboards/logs                      |
+| TC11    | Custom Scope Filtering with Tags         | AUM targets only tagged resources for patching                                  |
+| TC12    | Guest Configuration Compliance           | Machine Configuration policies enforce registry or file state compliance        |
+| TC13    | Role-Based Access Control (RBAC)         | Only designated users can manage updates at scope level                         |
+| TC14    | Reporting Discrepancy Resolution         | Compare AUM and SCCM compliance reports and explain discrepancies               |
+| TC15    | Private Endpoint Isolation Test          | Validate that AUM can patch servers via Private Link only                       |
+| TC16    | Run Command Script Deployment            | Successfully deploy a script using Arc Run Command for pre-patch checks         |
+| TC17    | Linux VM Patch Support via AUM + Arc     | Apply security patches to an onboarded Linux server and confirm success         |
+| TC18    | Update Baseline Application              | Define an update baseline and verify it's applied across a resource group       |
+| TC19    | Patch Rollback Simulation (Manual)       | Use VM snapshot to simulate rollback and document guidance                      |
+| TC20    | SQL Cluster Visibility in Arc            | Confirm all SQL nodes and health are visible and manageable under Arc           |
 
-Test ID
+---
 
-Scenario
 
-Expected Result
+---
 
-TC01
+##  Extended Scope Testing
 
-Onboard VM with SQL
+- Validate **update orchestration across multiple regions**
+- Evaluate **Private Endpoint configuration** for AUM
+- Integrate **SQL Best Practices Analyzer (BPA)** using Azure Arc
+- Enable **Microsoft Defender for Endpoint** integration
+- Simulate **rollback procedures** using snapshot restore or manual fallback
 
-Server onboarded in Arc with compliance extensions
+---
 
-TC02
+## Reporting & Monitoring
 
-Patch via AUM
+- Build real-time dashboards using **Azure Monitor Workbooks**
+- Compare and monitor update states across tools using:
+  - Patch compliance level
+  - Last scan time
+  - Patch classification trends (e.g., Critical, Security)
+- Use **Log Analytics KQL queries** to extract update, agent, and compliance insights across Arc-enabled machines
 
-Updates applied successfully within window
+Example KQL:
+```kql
+UpdateSummary
+| summarize count() by Computer, Classification, UpdateState
 
-TC03
 
-Conflict test with SCCM
-
-Document duplicate updates or scan issues
-
-TC04
-
-SQL AG-aware patching
-
-Validate successful sequential patching
-
-TC05
-
-Run CM Pivot vs Arc Run Command
-
-Compare execution time and data returned
-
-TC06
-
-Asset comparison
-
-Analyze inventory report variance
-
-Extended Scope Testing
-
-Validate AUM update orchestration across multiple regions
-
-Evaluate private endpoint configurations for AUM traffic
-
-Run SQL BPA via Azure Arc integration
-
-Test AUM in conjunction with Defender for Endpoint
-
-Simulate rollback scenarios and document gaps
-
-Reporting & Monitoring
-
-Use Azure Monitor to build patch compliance dashboards
-
-Compare AUM and SCCM reports for:
-
-Patch state
-
-Last scanned time
-
-Compliance trend
-
-Use Log Analytics queries to correlate events
 
