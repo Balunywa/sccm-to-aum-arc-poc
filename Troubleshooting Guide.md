@@ -51,22 +51,24 @@ This guide walks you through the end-to-end update workflow when using on‑prem
   gpupdate /force
   Restart-Service wuauserv
   wuauclt /detectnow # or UsoClient StartScan
-## Scenario B: WSUS metadata missing or approvals skipped
+  ```
+
+### Scenario B: WSUS metadata missing or approvals skipped
 
 **Symptom**  
-WSUS console shows KB not downloaded or not approved; WUA event log “No updates detected.”
+WSUS console shows KB not downloaded or not approved; WUA event log "No updates detected."
 
 **Fault**  
 SCCM auto-approval rules not covering this KB classification.
 
 **Fix**  
 1. In WSUS console go to **Options → Products and Classifications**  
-2. Tick the right categories (e.g. “Updates”, “Servicing Stack”)  
+2. Tick the right categories (e.g. "Updates", "Servicing Stack")  
 3. Approve the specific KB for the correct computer group
 
 ---
 
-## Scenario C: SCCM installs update before AUM scan
+### Scenario C: SCCM installs update before AUM scan
 
 **Symptom**  
 AUM portal shows no pending updates, even though WSUS has approvals.
@@ -81,23 +83,24 @@ Once installed, WUA no longer lists them—AUM sees nothing to report.
 
 ---
 
-## Scenario D: Manual Windows Update on VM (outside SCCM)
+### Scenario D: Manual Windows Update on VM (outside SCCM)
 
 **Symptom**  
 Customer logs into VM, sees available updates via **Settings → Update**, but AUM has no record.
 
 **Fault**  
-Manual UI Update triggers Microsoft Update (or WSUS) directly; SCCM isn’t aware.
+Manual UI Update triggers Microsoft Update (or WSUS) directly; SCCM isn't aware.
 
 **Fix**  
 - Redirect WUA via GPO to WSUS only  
-- Remove “Microsoft Update” fallback in client settings  
+- Remove "Microsoft Update" fallback in client settings  
 - Audit with:
   ```powershell
   Get-ItemProperty HKLM:\...\WindowsUpdate\AU |
     Format-List UseWUServer,WUServer,WUStatusServer
+  ```
 
-## Scenario E: Arc agent & AUM conflict with SCCM client setting
+### Scenario E: Arc agent & AUM conflict with SCCM client setting
 
 **Symptom**  
 Arc-connected VM shows a green check but Azure Portal no updates, while SCCM report shows many missing patches.
@@ -118,44 +121,49 @@ Both agents calling WUA; if SCCM GPO disables auto-approval of Microsoft Update,
    ```powershell
    Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU |
      Select UseWUServer,WUServer,WUStatusServer
-### Refresh policy & WUA
+   ```
 
-```bat
-gpupdate /force &&
-  net stop wuauserv &&
-  net start wuauserv &&
-  wuauclt /detectnow
+2. **Refresh policy & WUA**
+   ```bat
+   gpupdate /force &&
+     net stop wuauserv &&
+     net start wuauserv &&
+     wuauclt /detectnow
+   ```
 
-## Inspect WUA event log
+3. **Inspect WUA event log**
+   ```bash
+   wevtutil qe Microsoft-Windows-WindowsUpdateClient/Operational /c:20 /f:text
+   ```
 
-```bash
-wevtutil qe Microsoft-Windows-WindowsUpdateClient/Operational /c:20 /f:text
+4. **Confirm WSUS catalog**  
+   In the WSUS console, ensure your KBs show Downloaded and Approved for the target group.
 
-Confirm WSUS catalog
-In the WSUS console, ensure your KBs show Downloaded and Approved for the target group.
+5. **Run AUM assessment**  
+   In the Azure Portal, go to Update Manager → Assess on the target machine.
 
-Run AUM assessment
-In the Azure Portal, go to Update Manager → Assess on the target machine.
+6. **Compare outputs**  
+   Compare the SCCM Software Update compliance reports against the AUM portal results.
 
-Compare outputs
-Compare the SCCM Software Update compliance reports against the AUM portal results.
+7. **Adjust sequence**  
+   If SCCM deploys first, consider delaying its deployment window or running a pre-deployment AUM scan to capture visibility.
 
-Adjust sequence
-If SCCM deploys first, consider delaying its deployment window or running a pre-deployment AUM scan to capture visibility.
+## 5. Best Practices & Recommendations
 
-5. Best Practices & Recommendations
-Single approval source
+### Single approval source
 Use SCCM/WSUS as your single system of record for patch approvals. Do not manually sync in AUM without WSUS.
 
-Scan cadence
+### Scan cadence
 Schedule AUM to scan before each SCCM deployment window (e.g. AUM at 3 AM, SCCM at 4 AM).
 
-Separate OUs
+### Separate OUs
 If some VMs are managed only by AUM (no SCCM), place them in a distinct OU with its own WSUS GPO.
 
-Monitoring
+### Monitoring
 Monitor both SCCM and AUM dashboards—use SCCM for approval/deployment compliance and AUM for cloud-side visibility.
 
-Outcome
-Following this guide, you’ll pinpoint exactly which part of the chain
-(GPO → WUA → WSUS → SCCM → AUM) is misconfigured or out of sync, then correct it so both SCCM and Azure Update Manager show consistent, accurate patch status.
+## Outcome
+
+Following this guide, you'll pinpoint exactly which part of the chain (GPO → WUA → WSUS → SCCM → AUM) is misconfigured or out of sync, then correct it so both SCCM and Azure Update Manager show consistent, accurate patch status.
+
+
