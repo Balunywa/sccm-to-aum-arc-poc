@@ -1,4 +1,4 @@
-# SCCM + Azure Update Manager (AUM) Update Delivery & Troubleshooting Guide
+# SCCM + Azure Update Manager (AUM) Troubleshooting Guide
 
 ## 1. Overview
 
