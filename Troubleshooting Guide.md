@@ -42,15 +42,67 @@ This guide walks you through the end-to-end update workflow when using on‑prem
 
 ### Scenario A: GPO not applied, client still talking to Microsoft Update
 
-- **Symptom**:  
-  `Get-ItemProperty` `HKLM:\...\WindowsUpdate\AU` shows `UseWUServer=0` or missing keys.
-- **Fault**:  
-  WUA ignoring WSUS, so AUM sees only MS Update catalog (could be empty).
-- **Fix**:
-  ```powershell
-  gpupdate /force
-  Restart-Service wuauserv
-  wuauclt /detectnow # or UsoClient StartScan
+Symptom
+Your VM’s Windows Update Agent (WUA) isn’t pointing at WSUS, so AUM only ever sees “vanilla” Microsoft Update (and often nothing). You’ll spot it when:
+
+powershell
+Copy
+Edit
+Get-ItemProperty `
+  -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' |
+  Select-Object UseWUServer, WUServer, WUStatusServer
+returns something like:
+
+text
+Copy
+Edit
+UseWUServer    : 0
+WUServer       :
+WUStatusServer :
+What’s Broken
+
+UseWUServer = 0 (or the WSUS server keys are missing) tells WUA to ignore your WSUS/SCCM SUP entirely.
+
+Azure Update Manager (AUM) talks only to WUA, so it never sees your approved WSUS catalog.
+
+Fix & Verify
+Force-apply your WSUS GPO
+
+batch
+Copy
+Edit
+gpupdate /force
+Restart the Windows Update service
+
+powershell
+Copy
+Edit
+Restart-Service wuauserv
+Kick off an immediate scan
+
+batch
+Copy
+Edit
+wuauclt /detectnow        # legacy
+# or, on newer OS’s:
+UsoClient StartScan
+Re-check your registry
+
+powershell
+Copy
+Edit
+(Get-ItemProperty `
+  -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU') |
+  Select-Object UseWUServer, WUServer, WUStatusServer
+Now you should see something like:
+
+text
+Copy
+Edit
+UseWUServer    : 1
+WUServer       : http://your‐wsus-server:8530
+WUStatusServer : http://your‐wsus-server:8530
+Rerun your AUM assessment in the Azure portal. It will now query WUA → WSUS → AUM, and pick up exactly those updates you’ve approved in SCCM/WSUS.
   ```
 
 ### Scenario B: WSUS metadata missing or approvals skipped
